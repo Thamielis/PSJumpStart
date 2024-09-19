@@ -4,7 +4,7 @@ Param(
 #region Init
 #region local functions
 function Get-LocalDefaultVariables {
-     <#
+    <#
     .Synopsis
         Load default arguemts for this PS-file.
     .DESCRIPTION

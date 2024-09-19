@@ -17,63 +17,60 @@ function Invoke-SqlQuery {
         .NOTES
             For a full feature SQL Admin module: https://dbatools.io/
         #>
-        [CmdletBinding(DefaultParameterSetName='NamedConnection')]
-        Param(
-        [parameter(Position=0,mandatory=$true)]
+    [CmdletBinding(DefaultParameterSetName = 'NamedConnection')]
+    Param(
+        [parameter(Position = 0, mandatory = $true)]
         [string]$Query,       
-        [parameter(ParameterSetName='NamedConnection')]
+        [parameter(ParameterSetName = 'NamedConnection')]
         [string]$Server,
-        [parameter(ParameterSetName='NamedConnection')]
+        [parameter(ParameterSetName = 'NamedConnection')]
         [string]$DataBase,
-        [parameter(ParameterSetName='ConnectionString')]
+        [parameter(ParameterSetName = 'ConnectionString')]
         [string]$ConnectionString
-        )
-        Begin
-        {
-            if ([string]::IsNullOrEmpty($ConnectionString)) {
-                $ConnectionString="server='$Server';database='$Database';trusted_connection=true;"
-            }
-            #Establish connection
-            $Connection = New-Object System.Data.SQLClient.SQLConnection
-            $Connection.ConnectionString = $ConnectionString
+    )
+    Begin {
+        if ([string]::IsNullOrEmpty($ConnectionString)) {
+            $ConnectionString = "server='$Server';database='$Database';trusted_connection=true;"
+        }
+        #Establish connection
+        $Connection = New-Object System.Data.SQLClient.SQLConnection
+        $Connection.ConnectionString = $ConnectionString
             
-            [string]$global:tmpInfoMessagesFromSQLcommand = ""
-            $InfoHandler = [System.Data.SqlClient.SqlInfoMessageEventHandler]{param($sender, $event) $global:tmpInfoMessagesFromSQLcommand += "$($event.Message)`r`n"}
-            $Connection.add_InfoMessage($InfoHandler);
-            $Connection.FireInfoMessageEventOnUserErrors = $true;            
+        [string]$global:tmpInfoMessagesFromSQLcommand = ""
+        $InfoHandler = [System.Data.SqlClient.SqlInfoMessageEventHandler] { param($sender, $event) $global:tmpInfoMessagesFromSQLcommand += "$($event.Message)`r`n" }
+        $Connection.add_InfoMessage($InfoHandler)
+        $Connection.FireInfoMessageEventOnUserErrors = $true            
             
-            $Connection.Open()
-            $Command = New-Object System.Data.SQLClient.SQLCommand
-            $Command.Connection = $Connection
+        $Connection.Open()
+        $Command = New-Object System.Data.SQLClient.SQLCommand
+        $Command.Connection = $Connection
     
-            $SqlAdapter = New-Object System.Data.SqlClient.SqlDataAdapter
-            $SqlAdapter.SelectCommand = $Command
-        }
-        Process
-        {
-                   
-            $Command.CommandText = $Query
-            $DataSet = New-Object System.Data.DataSet
-            $SqlAdapter.Fill($DataSet) | Out-Null
-    
-            #Return object with a separate buckets for data and messages.
-            #The use of DataSet has some VERY nice features (ask Google if you don't beleive it) 
-            #as well as the possibility to return several data tables in one query
-            $return = [PSCustomObject]@{
-                Messages = $global:tmpInfoMessagesFromSQLcommand
-                DataSet = $DataSet
-            }
-    
-            $return
-                    
-        }
-        End
-        {
-            #Empty tmp-variable
-            [string]$global:tmpInfoMessagesFromSQLcommand = $null
-    
-            #Close connection
-            $Connection.Close()
-        }
+        $SqlAdapter = New-Object System.Data.SqlClient.SqlDataAdapter
+        $SqlAdapter.SelectCommand = $Command
     }
+    Process {
+        
+        $Command.CommandText = $Query
+        $DataSet = New-Object System.Data.DataSet
+        $SqlAdapter.Fill($DataSet) | Out-Null
+    
+        #Return object with a separate buckets for data and messages.
+        #The use of DataSet has some VERY nice features (ask Google if you don't beleive it) 
+        #as well as the possibility to return several data tables in one query
+        $return = [PSCustomObject]@{
+            Messages = $global:tmpInfoMessagesFromSQLcommand
+            DataSet  = $DataSet
+        }
+    
+        $return
+                    
+    }
+    End {
+        #Empty tmp-variable
+        [string]$global:tmpInfoMessagesFromSQLcommand = $null
+    
+        #Close connection
+        $Connection.Close()
+    }
+}
     

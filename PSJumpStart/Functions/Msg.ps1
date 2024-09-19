@@ -40,7 +40,7 @@ function Msg {
         #>
     [CmdletBinding()]
     Param(
-        [parameter(Position = 0, mandatory = $true, ValueFromPipeline=$true)]
+        [parameter(Position = 0, mandatory = $true, ValueFromPipeline = $true)]
         $Message,
         [parameter(Position = 1, mandatory = $false)]
         [string]$Type = "INFORMATION",        
